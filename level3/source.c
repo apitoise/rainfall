@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define	VALUE	0
+int	m = 0;
 
 void	v(void) {
 	char	buff[520];
@@ -11,7 +11,7 @@ void	v(void) {
 
 	fgets(buff, 512, stdin);
 	printf(buff);
-	if (VALUE == 64) {
+	if (m == 64) {
 		fwrite("Wait what?!\n", 1, 12, stdout);
 		system("/bin/sh");
 	}
