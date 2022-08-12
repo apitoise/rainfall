@@ -55,7 +55,7 @@ $> objdump -d ./level4
  80484bf:	90                   	nop
 [...]
 
-#	La faille est la meme que pour l'exercice precedent, un format string exploit. La difference ici est que m a une taille bien trop grande pour le buffer. J'ai longuement chercher a modifier l'adresse sauvegardee dans eip de p() et meme de .fini pour rediriger dans le if, mais impossible.
+#	La faille est la meme que pour l'exercice precedent, un format string exploit. La difference ici est que m a une taille bien trop grande pour le buffer. J'ai longuement cherche a modifier l'adresse sauvegardee dans eip de p() et meme de .fini pour rediriger dans le if, mais impossible.
 
 #	En fait la solution est bien plus simple que ca, il suffit d'utiliser les outils fournis par printf pour afficher un nombre consequent de caractere sans avoir a tous les ecrire. Deja on va chercher l'emplacement du buffer sur la stack:
 
@@ -68,4 +68,4 @@ $> python -c 'print "\x10\x98\x04\x08" + "%16930112c" + "%12$n"' | ./level4
 [...]
 0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
 
-#	La valeur voulu etant 16930116, il faudra lui retirer la taille de l'adresse donc 4. Le fait de specifier une valeur entre le % et le c va print un nombre voulu de char.
+#	La valeur voulue etant 16930116, il faudra lui retirer la taille de l'adresse donc 4. Le fait de specifier une valeur entre le % et le c va print un nombre voulu de char.

@@ -1,5 +1,5 @@
-Au level0, nous avons un binaire 'level0' qui segfault sans argument.
-Si on lui passe un argument, il renvoie 'No !'.
+#	Au level0, nous avons un binaire 'level0' qui segfault sans argument.
+#	Si on lui passe un argument, il renvoie 'No !'.
 
 $> ls -la
 total 737
@@ -10,8 +10,8 @@ dr-x--x--x  1 root   root      340 Sep 23  2015 ..
 -rwsr-x---+ 1 level1 users  747441 Mar  6  2016 level0
 -rw-r--r--  1 level0 level0    675 Apr  3  2012 .profile
 
-On peux voir que le binaire a les droits de level1.
-Regardons un peu l'assembleur:
+#	On peux voir que le binaire a les droits de level1.
+#	Regardons un peu l'assembleur:
 
 $> gdb level0
 disass main
@@ -67,13 +67,13 @@ Dump of assembler code for function main:
    0x08048f86 <+198>:	ret
 End of assembler dump.
 
-On peux voir que le programme attend l'argument "423" apres quoi il va recuperer l'id de level1 afin de faire un execve de /bin/bash avec les droits de level1. Cela devrait nous permettre d'obtenir ce que l'on souhaite.
+#	On peux voir que le programme attend l'argument "423" apres quoi il va recuperer l'id de level1 afin de faire un execve de /bin/bash avec les droits de level1. Cela devrait nous permettre d'obtenir ce que l'on souhaite.
 
 $> ./level0 423
 $ whoami
 level1
 
-BINGO
+#	BINGO!!
 
 $ cat /home/user/level1/.pass
 1fe8a524fa4bec01ca4ea2a869af2a02260d4a7d5fe7e7c24d8617e6dca12d3a

