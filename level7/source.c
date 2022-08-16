@@ -11,22 +11,24 @@ void	m(void) {
 }
 
 int		main(int ac, char **av) {
-	char	*str[4];
+	char	*s1[2];
+	char	*s2[2];
 	FILE	*fd;
 
-	str[0] = malloc(8);
-	*str[0] = 1;
+	s1[0] = malloc(8);
+	*s1[0] = 1;
 
-	str[1] = malloc(8);
+	s1[1] = malloc(8);
 
-	str[2] = malloc(8);
-	*str[2] = 2;
+	s2[0] = malloc(8);
+	*s2[0] = 2;
 
-	str[3] = malloc(8);
+	s2[1] = malloc(8);
 
-	strcpy(str[1], av[1]);
-	strcpy(str[3], av[2]);
+	strcpy(s1[1], av[1]);
+	strcpy(s2[3], av[2]);
 	fd = fopen("/home/user/level8/.pass", "r");
 	fgets(c, 68, fd);
 	puts("~~");
+	return (0);
 }
