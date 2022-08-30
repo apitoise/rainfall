@@ -11,6 +11,5 @@ int		main(void) {
 	char	buff[76];
 
 	gets(buff);
-	printf("%d\n", 0x50 - 0x10);
 	return(0);
 }
